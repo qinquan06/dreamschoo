@@ -2,22 +2,21 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 import sys
-import time
 
 def get_exchange_rate(date, currency_code):
-    
-    driver_path = 'YOUR_WEBDRIVER_PATH_HERE'
-    
-    driver = webdriver.Chrome(executable_path=driver_path)
+
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()))
     
     try:
         driver.get("https://www.boc.cn/sourcedb/whpj/")
-        
+
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.ID, "pjname"))
         )
-        
+
         date_input = driver.find_element(By.NAME, "erectDate")
         date_input.clear()
         date_input.send_keys(date)
@@ -31,9 +30,10 @@ def get_exchange_rate(date, currency_code):
         WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, "//table[@class='BOC_main publish']"))
         )
-       
-        time.sleep(2) 
-        rate = driver.find_element(By.XPATH, "//table[@class='BOC_main publish']/tbody/tr[2]/td[7]").text
+
+        rate = WebDriverWait(driver, 10).until(
+            EC.visibility_of_element_located((By.XPATH, "//table[@class='BOC_main publish']/tbody/tr[2]/td[7]"))
+        ).text
         
         with open("result.txt", "w") as file:
             file.write(rate)
